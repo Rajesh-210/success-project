@@ -2,10 +2,9 @@
 set -e
 
 # ============================
-# CONFIGURATION
+# CONFIG
 # ============================
-GIT_REPO_URL="https://github.com/Rajesh-210/success-project.git"
-REPO_DIR="success-project"
+REPO_DIR="$HOME/success-project"
 ZIP_FILE="success-project.zip"
 
 DOCKERHUB_USERNAME="chilukurir"
@@ -13,72 +12,68 @@ BACKEND_IMAGE="success-project-backend"
 FRONTEND_IMAGE="success-project-frontend"
 
 # ============================
-# Update & install packages
+# System update & packages
 # ============================
 sudo apt update -y
-sudo apt install -y git unzip curl
+sudo apt install -y unzip curl
 
 # ============================
-# Install Docker (if not exists)
+# Install Docker (if missing)
 # ============================
-if ! command -v docker &> /dev/null; then
+if ! command -v docker &>/dev/null; then
   curl -fsSL https://get.docker.com | sudo bash
-  sudo usermod -aG docker $USER
 fi
 
 # ============================
-# Install Docker Compose (plugin)
+# Install Docker Compose
 # ============================
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker-compose &>/dev/null; then
   sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
-  -o /usr/local/bin/docker-compose
+    -o /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
 fi
 
 # ============================
-# Clone repository
+# Go to project
 # ============================
-cd ~
-rm -rf ${REPO_DIR}
-git clone ${GIT_REPO_URL}
 cd ${REPO_DIR}
 
 # ============================
-# Unzip project (as per your flow)
+# Unzip project (your exact flow)
 # ============================
-ls
 unzip -o ${ZIP_FILE}
 cd success-project
 
 # ============================
-# Build Docker images
+# Stop old containers
+# ============================
+docker compose down || true
+
+# ============================
+# Build images
 # ============================
 docker compose build
 
 # ============================
-# Run containers (sanity check)
+# Run containers
 # ============================
 docker compose up -d
 
-echo "✅ Application started on build server (for validation)"
+echo "✅ Containers are running on this server"
 
 # ============================
-# Docker Hub login
+# OPTIONAL: Push to Docker Hub
 # ============================
 docker login
 
-# ============================
-# Tag images
-# ============================
 docker tag ${BACKEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
 docker tag ${FRONTEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
 
-# ============================
-# Push images
-# ============================
 docker push ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
 docker push ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
 
 echo "======================================="
 echo "✅ BUILD + RUN + PUSH COMPLETED"
+echo "Frontend: http://<SERVER_PUBLIC_IP>"
+echo "Backend : http://<SERVER_PUBLIC_IP>:8080"
 echo "======================================="
