@@ -40,11 +40,11 @@ echo "$DOCKERHUB_TOKEN" | docker login \
 # ============================
 # Tag & Push images
 # ============================
-docker tag ${BACKEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
-docker tag ${FRONTEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+docker tag ${BACKEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest1
+docker tag ${FRONTEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest1
 
-docker push ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
-docker push ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+docker push ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest1
+docker push ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest1
 
 echo "======================================="
 echo "✅ BUILD + RUN + PUSH COMPLETED"
