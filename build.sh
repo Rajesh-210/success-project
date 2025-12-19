@@ -4,22 +4,23 @@ set -e
 # ============================
 # CONFIG
 # ============================
-REPO_DIR="$WORKSPACE"
+WORKDIR="$WORKSPACE"
 ZIP_FILE="success-project.zip"
 
-DOCKERHUB_USERNAME="chilukurir"
+DOCKERHUB_USERNAME="YOUR_DOCKERHUB_USERNAME"
 BACKEND_IMAGE="success-project-backend"
 FRONTEND_IMAGE="success-project-frontend"
 
 # ============================
 # Go to Jenkins workspace
 # ============================
-cd ${REPO_DIR}
+cd "$WORKDIR"
 
 # ============================
 # Unzip project
 # ============================
-unzip -o ${ZIP_FILE}
+unzip -o "$ZIP_FILE"
+
 cd success-project
 
 # ============================
@@ -38,7 +39,7 @@ docker compose build
 docker compose up -d
 
 # ============================
-# Docker Hub Login (non-interactive recommended)
+# Docker Hub login (prefer token)
 # ============================
 docker login
 
