@@ -4,47 +4,41 @@ set -e
 # ============================
 # CONFIG
 # ============================
-WORKDIR="$WORKSPACE"
 ZIP_FILE="success-project.zip"
-
-DOCKERHUB_USERNAME="YOUR_DOCKERHUB_USERNAME"
 BACKEND_IMAGE="success-project-backend"
 FRONTEND_IMAGE="success-project-frontend"
 
 # ============================
 # Go to Jenkins workspace
 # ============================
-cd "$WORKDIR"
+cd "$WORKSPACE"
 
 # ============================
 # Unzip project
 # ============================
 unzip -o "$ZIP_FILE"
-
 cd success-project
 
 # ============================
-# Stop old containers
+# Stop existing containers
 # ============================
 docker compose down || true
 
 # ============================
-# Build images
+# Build & Run
 # ============================
 docker compose build
-
-# ============================
-# Run containers
-# ============================
 docker compose up -d
 
 # ============================
-# Docker Hub login (prefer token)
+# Docker login (NON-INTERACTIVE)
 # ============================
-docker login
+echo "$DOCKERHUB_TOKEN" | docker login \
+  -u "$DOCKERHUB_USERNAME" \
+  --password-stdin
 
 # ============================
-# Tag & Push
+# Tag & Push images
 # ============================
 docker tag ${BACKEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
 docker tag ${FRONTEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
