@@ -1,46 +1,59 @@
 #!/bin/bash
+set -e
 
 # ============================
-# EDIT THESE VALUES
+# CONFIGURATION
 # ============================
 DOCKERHUB_USERNAME="chilukurir"
-
 BACKEND_IMAGE="success-project-backend"
 FRONTEND_IMAGE="success-project-frontend"
 
-# ============================
-# Update system
-# ============================
-sudo apt update -y
+APP_DIR="/home/ubuntu/success-project-runtime"
 
 # ============================
-# Install required packages
+# Update & install packages
 # ============================
+sudo apt update -y
 sudo apt install -y curl
 
 # ============================
-# Install Docker
+# Install Docker (if not exists)
 # ============================
-curl -fsSL https://get.docker.com | sudo bash
-sudo usermod -aG docker $USER
+if ! command -v docker &> /dev/null; then
+  curl -fsSL https://get.docker.com | sudo bash
+  sudo usermod -aG docker $USER
+fi
 
 # ============================
 # Install Docker Compose
 # ============================
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
--o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+if ! command -v docker-compose &> /dev/null; then
+  sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+  -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
 
 # ============================
-# Docker Hub Login
+# Create app directory
+# ============================
+mkdir -p ${APP_DIR}
+cd ${APP_DIR}
+
+# ============================
+# Docker Hub login
 # ============================
 docker login
 
 # ============================
-# Pull images from Docker Hub
+# Pull images
 # ============================
 docker pull ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
 docker pull ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+
+# ============================
+# Stop old containers
+# ============================
+docker compose down || true
 
 # ============================
 # Create docker-compose.yml
@@ -96,7 +109,7 @@ EOF
 docker compose up -d
 
 echo "======================================="
-echo "✅ APPLICATION DEPLOYED SUCCESSFULLY"
+echo "✅ DEPLOYMENT SUCCESSFUL"
 echo "Frontend: http://<EC2_PUBLIC_IP>"
 echo "Backend : http://<EC2_PUBLIC_IP>:8080"
 echo "======================================="
