@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
@@ -9,22 +10,30 @@ pipeline {
             }
         }
 
-        stage('Build & Deploy') {
+        stage('Build & Deploy (Same Server)') {
             steps {
-                sh '''
-                chmod +x build.sh
-                ./build.sh
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: '7a0f39da-b347-427f-914a-35aa843e7c41',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                    chmod +x build.sh
+                    ./build.sh
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo "✅ Deployment successful"
+            echo "✅ Pipeline executed successfully"
         }
         failure {
-            echo "❌ Deployment failed"
+            echo "❌ Pipeline failed"
         }
     }
 }
