@@ -1,9 +1,10 @@
 #!/bin/bash
+set -e
 
 # ============================
-# EDIT THESE VALUES
+# CONFIGURATION
 # ============================
-GIT_REPO_URL="https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+GIT_REPO_URL="https://github.com/Rajesh-210/success-project.git"
 REPO_DIR="success-project"
 ZIP_FILE="success-project.zip"
 
@@ -12,45 +13,41 @@ BACKEND_IMAGE="success-project-backend"
 FRONTEND_IMAGE="success-project-frontend"
 
 # ============================
-# Update system
+# Update & install packages
 # ============================
 sudo apt update -y
-
-# ============================
-# Install required packages
-# ============================
 sudo apt install -y git unzip curl
 
 # ============================
-# Install Docker
+# Install Docker (if not exists)
 # ============================
-curl -fsSL https://get.docker.com | sudo bash
-sudo usermod -aG docker $USER
+if ! command -v docker &> /dev/null; then
+  curl -fsSL https://get.docker.com | sudo bash
+  sudo usermod -aG docker $USER
+fi
 
 # ============================
-# Install Docker Compose
+# Install Docker Compose (plugin)
 # ============================
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
--o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+if ! command -v docker-compose &> /dev/null; then
+  sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+  -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
 
 # ============================
-# Go to home directory
+# Clone repository
 # ============================
 cd ~
+rm -rf ${REPO_DIR}
+git clone ${GIT_REPO_URL}
+cd ${REPO_DIR}
 
 # ============================
-# Clone Git repository
+# Unzip project (as per your flow)
 # ============================
-rm -rf $REPO_DIR
-git clone $GIT_REPO_URL
-
-# ============================
-# After cloning (your exact steps)
-# ============================
-cd $REPO_DIR
 ls
-unzip $ZIP_FILE
+unzip -o ${ZIP_FILE}
 cd success-project
 
 # ============================
@@ -59,29 +56,25 @@ cd success-project
 docker compose build
 
 # ============================
-# RUN containers (IMPORTANT)
+# Run containers (sanity check)
 # ============================
 docker compose up -d
 
-echo "======================================="
-echo "✅ APPLICATION IS RUNNING"
-echo "Frontend: http://<EC2_PUBLIC_IP>"
-echo "Backend : http://<EC2_PUBLIC_IP>:8080"
-echo "======================================="
+echo "✅ Application started on build server (for validation)"
 
 # ============================
-# Docker Hub Login
+# Docker Hub login
 # ============================
 docker login
 
 # ============================
-# Tag Docker images
+# Tag images
 # ============================
 docker tag ${BACKEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
 docker tag ${FRONTEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
 
 # ============================
-# Push images to Docker Hub
+# Push images
 # ============================
 docker push ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
 docker push ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
