@@ -8,7 +8,7 @@ GIT_REPO_URL="https://github.com/Rajesh-210/success-project.git"
 REPO_DIR="success-project"
 ZIP_FILE="success-project.zip"
 
-DOCKERHUB_USERNAME="YOUR_DOCKERHUB_USERNAME"
+DOCKERHUB_USERNAME="chilukurir"
 BACKEND_IMAGE="success-project-backend"
 FRONTEND_IMAGE="success-project-frontend"
 
