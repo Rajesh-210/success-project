@@ -9,7 +9,7 @@ pipeline {
             }
         }
 
-        stage('Build & Deploy (Same Server)') {
+        stage('Build & Deploy') {
             steps {
                 sh '''
                 chmod +x build.sh
@@ -21,10 +21,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Application built and deployed on same server"
+            echo "✅ Deployment successful"
         }
         failure {
-            echo "❌ Pipeline failed"
+            echo "❌ Deployment failed"
         }
     }
 }
