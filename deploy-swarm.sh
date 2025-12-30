@@ -1,76 +1,74 @@
 #!/bin/bash
 set -e
 
-# ============================
-# CONFIG
-# ============================
-ZIP_FILE="success-project.zip"
-STACK_NAME="success-project"
-NETWORK_NAME="success-overlay"
+#############################################
+# CONFIGURATION
+#############################################
+DOCKERHUB_USERNAME="yourdockerhub"     # 🔁 CHANGE THIS
+PROJECT_NAME="urban"
+STACK_NAME="urban"
+NETWORK_NAME="app_net"
 
-BACKEND_IMAGE="success-project-backend"
-FRONTEND_IMAGE="success-project-frontend"
+BACKEND_IMAGE="$DOCKERHUB_USERNAME/urban-backend"
+FRONTEND_IMAGE="$DOCKERHUB_USERNAME/urban-frontend"
 
-# ============================
-# Move to script directory
-# ============================
-cd "$(dirname "$0")"
+BACKEND_DIR="urban_operations_cc"
+FRONTEND_DIR="urban_operations_cc_Frontend"
 
-# ============================
-# Unzip Project
-# ============================
-unzip -o "$ZIP_FILE"
-cd success-project
-
-# ============================
-# Docker Login
-# ============================
-if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
-  echo "❌ DOCKERHUB_USERNAME or DOCKERHUB_TOKEN not set"
+#############################################
+# PRE-CHECKS
+#############################################
+if ! command -v docker &> /dev/null; then
+  echo "❌ Docker not installed"
   exit 1
 fi
 
-echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-# ============================
-# Create Overlay Network (if not exists)
-# ============================
-if ! docker network ls | grep -w "$NETWORK_NAME" >/dev/null 2>&1; then
-  echo "🔧 Creating overlay network: $NETWORK_NAME"
-  docker network create --driver overlay --attachable "$NETWORK_NAME"
-else
-  echo "✅ Overlay network already exists: $NETWORK_NAME"
+if ! docker info | grep -q "Swarm: active"; then
+  echo "❌ Docker Swarm not initialized"
+  echo "Run: docker swarm init"
+  exit 1
 fi
 
-# ============================
-# Build Docker Images
-# ============================
-docker compose build
+#############################################
+# LOGIN TO DOCKER HUB
+#############################################
+echo "🔐 Logging into Docker Hub..."
+docker login || exit 1
 
-# ============================
-# Tag Images
-# ============================
-docker tag ${BACKEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
-docker tag ${FRONTEND_IMAGE}:latest ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+#############################################
+# BUILD IMAGES
+#############################################
+echo "🔨 Building backend image..."
+docker build -t $BACKEND_IMAGE:latest ./$BACKEND_DIR
 
-# ============================
-# Push Images
-# ============================
-docker push ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
-docker push ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+echo "🔨 Building frontend image..."
+docker build -t $FRONTEND_IMAGE:latest ./$FRONTEND_DIR
 
-# ============================
-# Deploy Stack
-# ============================
+#############################################
+# PUSH IMAGES
+#############################################
+echo "🚀 Pushing images to Docker Hub..."
+docker push $BACKEND_IMAGE:latest
+docker push $FRONTEND_IMAGE:latest
+
+#############################################
+# CREATE OVERLAY NETWORK (if not exists)
+#############################################
+if ! docker network ls | grep -q "$NETWORK_NAME"; then
+  echo "🌐 Creating overlay network..."
+  docker network create --driver overlay --attachable $NETWORK_NAME
+fi
+
+#############################################
+# DEPLOY STACK
+#############################################
+echo "🚀 Deploying Docker Swarm stack..."
 docker stack deploy -c docker-compose.yml $STACK_NAME
 
-# ============================
-# Status
-# ============================
-echo "======================================="
-echo "✅ Docker Swarm Deployment Completed"
-echo "Network : $NETWORK_NAME"
-echo "Stack   : $STACK_NAME"
-echo "======================================="
-
+#############################################
+# STATUS
+#############################################
+echo "===================================="
+echo "✅ DEPLOYMENT COMPLETE"
+echo "===================================="
 docker service ls
