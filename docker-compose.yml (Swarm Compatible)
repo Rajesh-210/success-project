@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: myuccc_db_final
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: yourdockerhub/urban-backend:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myuccc_db_final?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      - mysql
+    networks:
+      - app_net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    ports:
+      - target: 8080
+        published: 8081
+        protocol: tcp
+        mode: ingress
+
+  frontend:
+    image: yourdockerhub/urban-frontend:latest
+    depends_on:
+      - backend
+    networks:
+      - app_net
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: ingress
+
+volumes:
+  mysql_data:
+
+networks:
+  app_net:
+    external: true
