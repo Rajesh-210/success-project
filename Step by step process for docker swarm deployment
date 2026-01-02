@@ -1,0 +1,127 @@
+🚀 FULL STEP-BY-STEP DOCKER SWARM DEPLOYMENT GUIDE
+
+(From zero → running production services)
+
+🔹 STEP 1: Prepare the Server
+
+Make sure Docker & Docker Compose plugin are installed.
+
+docker --version
+docker compose version
+
+
+If not installed → install Docker first.
+
+🔹 STEP 2: Initialize Docker Swarm (Manager Node)
+docker swarm init
+
+
+✔ This creates the Swarm cluster
+✔ This node becomes the manager
+
+To check:
+
+docker node ls
+
+🔹 STEP 3: Project Structure
+
+Your folder structure should look like this:
+
+success-project/
+├── deploy-swarm.sh
+├── docker-compose.yml
+├── urban_operations_cc/
+├── urban_operations_cc_Frontend/
+
+🔹 STEP 4: Create Docker Hub Account
+
+Go to 👉 https://hub.docker.com
+
+Create an account
+
+Create two repositories:
+
+urban-backend
+
+urban-frontend
+
+🔹 STEP 5: Login to Docker Hub
+docker login
+
+
+Confirm:
+
+docker info | grep Username
+
+🔹 STEP 6: The Deployment Script (deploy-swarm.sh)
+
+This script does everything automatically:
+
+Builds images
+
+Pushes to Docker Hub
+
+Creates overlay network
+
+Deploys services in Swarm
+
+You ran:
+
+./deploy-swarm.sh
+
+Internally, it did:
+
+Build backend image
+
+Build frontend image
+
+Push both images to Docker Hub
+
+Create overlay network
+
+Deploy Docker Swarm stack
+
+🔹 STEP 7: Verify Deployment
+Check services
+docker service ls
+
+
+Expected:
+
+urban_backend   1/1
+urban_frontend  1/1
+urban_mysql     1/1
+
+Check running containers
+docker ps
+
+🔹 STEP 8: Access Application
+Component	URL
+Frontend	http://<SERVER-IP>
+Backend API	http://<SERVER-IP>:8081
+🔹 STEP 9: Scale Services (Optional)
+docker service scale urban_backend=2
+docker service scale urban_frontend=2
+
+
+Swarm automatically load-balances traffic.
+
+🔹 STEP 10: Stop or Remove Everything
+Stop services:
+docker stack rm urban
+
+Remove images:
+docker rmi chilukurir/urban-backend
+docker rmi chilukurir/urban-frontend
+
+🧠 What You Learned (Big Picture)
+
+✔ Docker image creation
+✔ Multi-stage builds
+✔ Docker Hub authentication
+✔ Docker Swarm orchestration
+✔ Load balancing & scaling
+✔ Real-world deployment workflow
+
+
+Just tell me what you want next!
